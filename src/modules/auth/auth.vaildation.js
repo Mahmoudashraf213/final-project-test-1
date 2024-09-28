@@ -28,8 +28,8 @@ export const updateAccountValidation = joi.object({
   email: generalFields.email.optional(),
   mobileNumber: generalFields.mobileNumber.optional(),
   DOB: generalFields.DOB.optional(),
-  recoveryEmail: generalFields.recoveryEmail.optional(),
-  role: generalFields.role.optional(),
+  // recoveryEmail: generalFields.recoveryEmail.optional(),
+  // role: generalFields.role.optional(),
 });
 
 // Validation for Update Password

@@ -36,8 +36,9 @@ authRouter.post('/signup', isValid(signupValidation), asyncHandler(signup));
 // 2- Login
 authRouter.post('/login', isValid(loginValidation), asyncHandler(login));
 
+//'/account/:userId'
 // 3- Update account
-authRouter.put('/update/:userId',
+authRouter.put('/account/:userId',
   isAuthenticated(),
   isAuthorized([roles.USER]),
   isValid(updateAccountValidation), 

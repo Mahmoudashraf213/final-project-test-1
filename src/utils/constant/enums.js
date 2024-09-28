@@ -30,8 +30,8 @@ Object.freeze(seniorityLevel);
 export const status = {
   ONLINE: "online",
   OFFLINE: "offline",
-  PENDING: "pending",
-  VERIFIED: "verified",
+  // PENDING: "pending",
+  // VERIFIED: "verified",
 };
 
 Object.freeze(status);

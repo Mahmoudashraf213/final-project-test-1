@@ -15,7 +15,7 @@ const userSchema = new Schema(
     },
     username: {
       type: String,
-      required: true,
+      // required: true,
       unique: true,
       trim: true,
     },
@@ -58,6 +58,12 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
-
+// Pre-save hook to generate the username
+userSchema.pre('save', function (next) {
+  if (this.isNew || this.isModified('firstName') || this.isModified('lastName')) {
+    this.username = `${this.firstName.toLowerCase()}_${this.lastName.toLowerCase()}`;
+  }
+  next();
+});
 // Model
 export const User = model("User", userSchema);

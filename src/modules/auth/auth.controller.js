@@ -84,49 +84,61 @@ export const login = async (req, res, next) => {
 
 // 3- Update Account
 export const updateAccount = async (req, res, next) => {
-  // get data from req
-  const { userId } = req.params;
-  const updates = req.body;
-  
-  // check if user exists
-  const userExists = await User.findById(userId);
-  if (!userExists) {
-    return next(new AppError(messages.user.notFound, 404));
-  }
-  
-  // Ensure only the owner can update their account
-  if (userId !== req.user._id.toString()) {
-    return next(new AppError(messages.user.notAuthorized, 403));
-  }
+  try {
+    // Get user ID from params and updates from the request body
+    const { userId } = req.params;
+    let { email, mobileNumber, recoveryEmail, DOB, lastName, firstName } = req.body;
 
-  // Check for conflicting email or mobile number
-  if (updates.email || updates.mobileNumber) {
-    const conflictUser = await User.findOne({
-      $or: [
-        { email: updates.email },
-        { mobileNumber: updates.mobileNumber }
-      ],
-      _id: { $ne: userId }
+    // Ensure only the account owner can update their account
+    if (userId !== req.user._id.toString()) {
+      return next(new AppError(messages.user.notAuthorized, 403));
+    }
+
+    // Fetch the user by ID
+    const userExists = await User.findById(userId);
+    if (!userExists) {
+      return next(new AppError(messages.user.notFound, 404));
+    }
+
+    // Check for conflicting email or mobile number
+    if (email || mobileNumber) {
+      const conflictUser = await User.findOne({
+        $or: [{ email }, { mobileNumber }],
+        _id: { $ne: userId },  // Exclude the current user from the check
+      });
+
+      if (conflictUser) {
+        return next(new AppError("Email or mobile number already exists.", 409));
+      }
+    }
+
+    // Update user fields if provided
+    if (firstName) userExists.firstName = firstName;
+    if (lastName) userExists.lastName = lastName;
+    if (mobileNumber) userExists.mobileNumber = mobileNumber;
+    if (email) userExists.email = email;
+    if (recoveryEmail) userExists.recoveryEmail = recoveryEmail;
+    if (DOB) userExists.DOB = DOB;
+    // if (userId) userExists.userId = userId;
+
+    // Save the updated user data to the database
+    const updatedUser = await userExists.save();
+    if (!updatedUser) {
+      return next(new AppError(messages.user.failToUpdate, 500));
+    }
+
+    // Send a success response
+    return res.status(200).json({
+      message: messages.user.updateSuccessfully,
+      success: true,
+      data: updatedUser,
     });
 
-    if (conflictUser) {
-      return next(new AppError("Email or mobile number already exists.", 409));
-    }
+  } catch (error) {
+    return next(new AppError(error.message, 500));
   }
-
-  // Update user account
-  const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
-  if (!updatedUser) {
-    return next(new AppError(messages.user.failToUpdate));
-  }
-
-  // Send response with updated user data
-  return res.status(200).json({
-    message: messages.user.updateSuccessfully,
-    success: true,
-    data: updatedUser,
-  });
 };
+
 
 // 4- Delete Account
 export const deleteAccount = async (req, res, next) => {
