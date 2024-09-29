@@ -30,6 +30,8 @@ export const generalFields = {
   DOB: joi.date().iso().required(),
   role: joi.string().valid(...Object.values(roles)).default(roles.USER),
   status: joi.string().valid("online", "offline").default("offline"),
+  userId: joi.string().length(24).hex().optional(), 
+
   
   companyName: joi.string().required(),
   description: joi.string().max(2000).required(),

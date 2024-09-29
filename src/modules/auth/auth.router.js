@@ -4,11 +4,11 @@ import { asyncHandler } from "../../utils/appError.js";
 import {
   signupValidation,
   loginValidation,
-  updateAccountValidation,
+  updateAccountVal,
   updatePasswordValidation,
-  sendResetPasswordOTPValidation,
-  resetPasswordWithOTPValidation,
-  getAccountsByRecoveryEmailValidation,
+  sendResetPasswordOTPVal,
+  resetPasswordWithOTPVal,
+  getAccountsByRecoveryEmailVal,
 } from "./auth.vaildation.js";
 import {
   signup,
@@ -41,17 +41,17 @@ authRouter.post('/login', isValid(loginValidation), asyncHandler(login));
 authRouter.put('/account/:userId',
   isAuthenticated(),
   isAuthorized([roles.USER]),
-  isValid(updateAccountValidation), 
+  isValid(updateAccountVal),
   asyncHandler(updateAccount));
 
 // 4- Delete account
-authRouter.delete('/delete/:userId', 
+authRouter.delete('/delete/:userId',
   isAuthenticated(),
   isAuthorized([roles.USER]),
   asyncHandler(deleteAccount));
 
 // 5- Get user account data (self)
-authRouter.get('/account/:userId', 
+authRouter.get('/account/:userId',
   isAuthenticated(),
   isAuthorized([roles.USER]),
   asyncHandler(getUserAccountData));
@@ -60,19 +60,25 @@ authRouter.get('/account/:userId',
 authRouter.get('/profile/:userId', asyncHandler(getProfileData));
 
 // 7- Update password
-authRouter.put('/password', 
-  // isAuthenticated(),
-  // isAuthorized([roles.USER]),
-  isValid(updatePasswordValidation), 
+authRouter.put('/password',
+  isAuthenticated(),
+  isAuthorized([roles.USER]),
+  isValid(updatePasswordValidation),
   asyncHandler(updatePassword));
 
 // 8- step(1) Forget password - Send OTP
-authRouter.post('/forget-password', isValid(sendResetPasswordOTPValidation), asyncHandler(sendResetPasswordOTP));
+authRouter.post('/forget-password', 
+  isValid(sendResetPasswordOTPVal), 
+  asyncHandler(sendResetPasswordOTP));
 
 // 8- step(2) Reset password with OTP
-authRouter.post('/reset-password', isValid(resetPasswordWithOTPValidation), asyncHandler(resetPasswordWithOTP));
+authRouter.post('/reset-password', 
+  isValid(resetPasswordWithOTPVal), 
+  asyncHandler(resetPasswordWithOTP));
 
 // 9- Get accounts by recovery email
-authRouter.post('/accounts-by-recovery-email', isValid(getAccountsByRecoveryEmailValidation), asyncHandler(getAccountsByRecoveryEmail));
+authRouter.post('/accounts-by-recovery-email', 
+  isValid(getAccountsByRecoveryEmailVal), 
+  asyncHandler(getAccountsByRecoveryEmail));
 
 export default authRouter;

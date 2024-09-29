@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { User } from "../../../db/index.js";
 import { AppError } from "../../utils/appError.js";
 import { messages } from "../../utils/constant/messages.js";
@@ -8,7 +9,8 @@ import { status } from "../../utils/constant/enums.js";
 
 // 1- Sign Up
 export const signup = async (req, res, next) => {
-  let { firstName, lastName, username, email, password, mobileNumber, DOB } = req.body;
+  let { firstName, lastName, username, email,recoveryEmail, password, mobileNumber, DOB } =
+    req.body;
 
   const userExists = await User.findOne({ $or: [{ email }, { mobileNumber }] });
   if (userExists) {
@@ -21,6 +23,7 @@ export const signup = async (req, res, next) => {
     lastName,
     username,
     email,
+    recoveryEmail,
     password,
     mobileNumber,
     DOB,
@@ -58,12 +61,15 @@ export const signup = async (req, res, next) => {
 //   return res.status(200).json({ message: messages.user.verified, success: true })
 // }
 
-
 // 2- Login
 export const login = async (req, res, next) => {
   const { email, mobileNumber, password } = req.body;
 
-  const userExist = await User.findOne({ $or: [{ email }, { mobileNumber }],status: status.OFFLINE });
+  const userExist = await User.findOneAndUpdate(
+    { $or: [{ email }, { mobileNumber }] },
+    { status: status.ONLINE },
+    { nwe: true }
+  );
   if (!userExist) {
     return next(new AppError(messages.userExist.invalidCredntiols, 400));
   }
@@ -73,7 +79,9 @@ export const login = async (req, res, next) => {
     return next(new AppError(messages.userExist.invalidCredntiols, 401));
   }
   // genrate token
-  const token = generateToken({ payload: { _id: userExist._id, email: userExist.email } });
+  const token = generateToken({
+    payload: { _id: userExist._id, email: userExist.email },
+  });
 
   return res.status(200).json({
     message: messages.user.loginSuccessfully,
@@ -87,10 +95,13 @@ export const updateAccount = async (req, res, next) => {
   try {
     // Get user ID from params and updates from the request body
     const { userId } = req.params;
-    let { email, mobileNumber, recoveryEmail, DOB, lastName, firstName } = req.body;
+    console.log("User ID from params:", userId); // تحقق من تمرير الـ userId
+
+    let { email, mobileNumber, recoveryEmail, DOB, lastName, firstName } =
+      req.body;
 
     // Ensure only the account owner can update their account
-    if (userId !== req.user._id.toString()) {
+    if (userId !== req.autUser._id.toString()) {
       return next(new AppError(messages.user.notAuthorized, 403));
     }
 
@@ -104,11 +115,13 @@ export const updateAccount = async (req, res, next) => {
     if (email || mobileNumber) {
       const conflictUser = await User.findOne({
         $or: [{ email }, { mobileNumber }],
-        _id: { $ne: userId },  // Exclude the current user from the check
+        _id: { $ne: userId }, // Exclude the current user from the check
       });
 
       if (conflictUser) {
-        return next(new AppError("Email or mobile number already exists.", 409));
+        return next(
+          new AppError("Email or mobile number already exists.", 409)
+        );
       }
     }
 
@@ -142,44 +155,57 @@ export const updateAccount = async (req, res, next) => {
 
 // 4- Delete Account
 export const deleteAccount = async (req, res, next) => {
-  const { userId } = req.params;
+  try {
+    const { userId } = req.params;
+    // console.log('User ID from params:', userId); // تحقق من تمرير الـ userId
 
-  const user = await User.findById(userId);
-  if (!user) {
-    return next(new AppError(messages.user.notFound, 404));
+    const auth = await User.findById(userId);
+    if (!auth) {
+      return next(new AppError(messages.user.notFound, 404));
+    }
+
+    if (userId !== req.authUser._id.toString()) {
+      return next(new AppError(messages.user.notAuthorized, 403));
+    }
+
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return next(new AppError(messages.user.failToDelete, 500));
+    }
+
+    return res.status(200).json({
+      message: messages.user.deleteSuccessfully,
+      success: true,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // Ensure only the owner can delete their account
-  if (userId !== req.user._id.toString()) {
-    return next(new AppError(messages.user.notAuthorized, 403));
-  }
-
-  await User.findByIdAndDelete(userId);
-
-  return res.status(200).json({
-    message: messages.user.deleteSuccessfully,
-    success: true,
-  });
 };
 
 // 5- Get User Account Data
 export const getUserAccountData = async (req, res, next) => {
-  const { userId } = req.params;
+  try {
+    const { userId } = req.params;
 
-  const user = await User.findById(userId);
-  if (!user) {
-    return next(new AppError(messages.user.notFound, 404));
+    // Fetch the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new AppError(messages.user.notFound, 404));
+    }
+
+    // Ensure only the owner can retrieve their account data
+    if (userId !== req.authUser._id.toString()) {
+      return next(new AppError(messages.user.notAuthorized, 403));
+    }
+
+    // Send a success response with user data
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 500));
   }
-
-  // Ensure only the owner can retrieve their account data
-  if (userId !== req.user._id.toString()) {
-    return next(new AppError(messages.user.notAuthorized, 403));
-  }
-
-  return res.status(200).json({
-    success: true,
-    data: user,
-  });
 };
 
 // 6- Get Profile Data for Another User
@@ -202,7 +228,7 @@ export const updatePassword = async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
 
   // Fetch the logged-in user
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.authUser._id);
 
   // Check if user exists
   if (!user) {
@@ -228,21 +254,27 @@ export const updatePassword = async (req, res, next) => {
 };
 
 // 8- Forget password
-// Step 1: Send OTP for Password Reset
+// 1. Step 1: Send OTP for Password Reset
 export const sendResetPasswordOTP = async (req, res, next) => {
   const { email } = req.body;
 
   // Check if the user exists
-  const user = await User.findOne({ email });
-  if (!user) {
+  const authUser = await User.findOne({ email });
+  if (!authUser) {
     return next(new AppError(messages.user.notFound, 404));
   }
 
-  // Generate OTP (One-Time Password)
-  const otp = crypto.randomInt(100000, 999999).toString(); // 6-digit OTP
-  user.otp = otp;
-  user.otpExpires = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
-  await user.save();
+  const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+  };
+  
+  // Generate OTP (One-Time Password) securely
+  const otp = generateOTP();
+  const hashedOTP = bcrypt.hashSync(otp, 8); // Hash the OTP
+  authUser.otp = hashedOTP;
+  authUser.otpExpired = Date.now() + 10 * 60 * 1000; // Set expiration
+
+  await authUser.save();
 
   // Send OTP via email
   await sendEmail({
@@ -257,30 +289,43 @@ export const sendResetPasswordOTP = async (req, res, next) => {
   });
 };
 
-// Step 2: Verify OTP and Reset Password
+// 2. Step 2: Verify OTP and Reset Password
 export const resetPasswordWithOTP = async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
 
   // Check if the user exists
-  const user = await User.findOne({ email });
-  if (!user) {
+  const autUser = await User.findOne({ email });
+  if (!autUser) {
     return next(new AppError(messages.user.notFound, 404));
   }
+  // console.log("User document at verification:", autUser); // Log the user object
 
-  // Check if OTP matches and has not expired
-  if (user.otp !== otp || user.otpExpires < Date.now()) {
+  // Check if OTP exists and is not expired
+  if (!autUser.otp || !autUser.otpExpired) {
+    return next(new AppError("OTP not found or expired", 400));
+  }
+  
+  
+  // Verify the OTP
+  const isValidOTP = await bcrypt.compare(otp, autUser.otp);
+  if (!isValidOTP || Date.now() > autUser.otpExpired) {
     return next(new AppError("Invalid or expired OTP", 400));
   }
+  // console.log("Provided OTP:", otp);
+  // console.log("Stored OTP (hashed):", autUser.otp);
+  // console.log("OTP Expiry Time:", autUser.otpExpired);
+  // console.log("Current Time:", Date.now());
 
   // Hash and update the new password
   const hashedPassword = bcrypt.hashSync(newPassword, 8);
-  user.password = hashedPassword;
+  autUser.password = hashedPassword;
 
   // Clear OTP fields
-  user.otp = undefined;
-  user.otpExpires = undefined;
+  autUser.otp = undefined;
+  autUser.otpExpired = undefined;
 
-  await user.save();
+  await autUser.save();
+  // console.log("User document after saving OTP:", autUser);
 
   res.status(200).json({
     message: messages.user.updateSuccessfully,

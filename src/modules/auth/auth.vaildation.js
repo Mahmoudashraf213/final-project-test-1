@@ -21,14 +21,14 @@ export const loginValidation = joi.object({
 }).or("email", "mobileNumber"); // Requires either email or mobileNumber
 
 // Validation for Update Account
-export const updateAccountValidation = joi.object({
+export const updateAccountVal = joi.object({
   firstName: generalFields.firstName.optional(),
   lastName: generalFields.lastName.optional(),
-  username: generalFields.username.optional(),
+  // username: generalFields.username.optional(),
   email: generalFields.email.optional(),
   mobileNumber: generalFields.mobileNumber.optional(),
+  recoveryEmail: generalFields.recoveryEmail.optional(),
   DOB: generalFields.DOB.optional(),
-  // recoveryEmail: generalFields.recoveryEmail.optional(),
   // role: generalFields.role.optional(),
 });
 
@@ -39,18 +39,18 @@ export const updatePasswordValidation = joi.object({
 });
 
 // Validation for Forget Password (Step 1: Sending OTP)
-export const sendResetPasswordOTPValidation = joi.object({
+export const sendResetPasswordOTPVal = joi.object({
   email: generalFields.email.required(),
 });
 
 // Validation for Reset Password with OTP (Step 2)
-export const resetPasswordWithOTPValidation = joi.object({
+export const resetPasswordWithOTPVal = joi.object({
   email: generalFields.email.required(),
   otp: joi.string().length(6).required(), // 6-digit OTP
   newPassword: generalFields.password.required(),
 });
 
 // Validation for Get All Accounts by Recovery Email
-export const getAccountsByRecoveryEmailValidation = joi.object({
+export const getAccountsByRecoveryEmailVal = joi.object({
   recoveryEmail: generalFields.recoveryEmail.required(),
 });

@@ -47,7 +47,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: Object.values(roles), // Assuming roles contains 'User' and 'Company_HR'
+      enum: Object.values(roles), 
       default: roles.USER,
     },
     status: {
@@ -55,6 +55,8 @@ const userSchema = new Schema(
       enum: ["online", "offline"],
       default: "offline",
     },
+    otp: String,
+    otpExpired: Date,
   },
   { timestamps: true }
 );
