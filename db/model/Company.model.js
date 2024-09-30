@@ -41,6 +41,16 @@ const companySchema = new Schema(
       ref: "User",
       required: true,
     },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    // updatedBy: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'User',
+      // required: true
+  // }
   },
   { timestamps: true }
 );

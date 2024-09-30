@@ -5,7 +5,8 @@ export const isAuthorized = (roles) => {
   return (req, res, next) => {
     // req >> authUser
     if (!roles.includes(req.authUser.role)) {
-      return next(new AppError(messages.user.notVerified, 401));
+      console.log('User Role:', req.authUser ? req.authUser.role : 'No User'); // Log the role
+      return next(new AppError(messages.user.notAuthorized, 401));
     }
     next()
   };

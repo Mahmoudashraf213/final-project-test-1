@@ -40,6 +40,7 @@ export const generalFields = {
   numberOfEmployees: joi.string().valid("1-10", "11-20", "21-50", "51-100", "101-500", "500+").required(),
   companyEmail: joi.string().email().required(),
   companyHR: joi.string().hex().length(24).required(),
+  companyId: joi.string().hex().length(24).required(),
   
   jobTitle: joi.string().required(),
   jobLocation: joi.string().valid("onsite", "remotely", "hybrid").required(),

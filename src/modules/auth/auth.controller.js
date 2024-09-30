@@ -9,7 +9,7 @@ import { status } from "../../utils/constant/enums.js";
 
 // 1- Sign Up
 export const signup = async (req, res, next) => {
-  let { firstName, lastName, username, email,recoveryEmail, password, mobileNumber, DOB } =
+  let { firstName, lastName, username, email,recoveryEmail, password, mobileNumber,role, DOB } =
     req.body;
 
   const userExists = await User.findOne({ $or: [{ email }, { mobileNumber }] });
@@ -26,6 +26,7 @@ export const signup = async (req, res, next) => {
     recoveryEmail,
     password,
     mobileNumber,
+    role,
     DOB,
   });
 
@@ -101,7 +102,7 @@ export const updateAccount = async (req, res, next) => {
       req.body;
 
     // Ensure only the account owner can update their account
-    if (userId !== req.autUser._id.toString()) {
+    if (userId !== req.user._id.toString()) {
       return next(new AppError(messages.user.notAuthorized, 403));
     }
 

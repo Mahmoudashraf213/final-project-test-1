@@ -47,7 +47,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: Object.values(roles), 
+      enum: Object.values(roles),
       default: roles.USER,
     },
     status: {
@@ -57,12 +57,20 @@ const userSchema = new Schema(
     },
     otp: String,
     otpExpired: Date,
+    // verified: {
+    //   type: Boolean,
+    //   default: false,
+    // },
   },
   { timestamps: true }
 );
 // Pre-save hook to generate the username
-userSchema.pre('save', function (next) {
-  if (this.isNew || this.isModified('firstName') || this.isModified('lastName')) {
+userSchema.pre("save", function (next) {
+  if (
+    this.isNew ||
+    this.isModified("firstName") ||
+    this.isModified("lastName")
+  ) {
     this.username = `${this.firstName.toLowerCase()}_${this.lastName.toLowerCase()}`;
   }
   next();
