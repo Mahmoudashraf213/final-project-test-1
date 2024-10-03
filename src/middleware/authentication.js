@@ -25,7 +25,6 @@ export const isAuthenticated = () => {
       }
 
       req.authUser = authUser;
-      // console.log('Authenticated User:', req.authUser); // Debugging
       next();
     } catch (error) {
       return next(new AppError(error.message, 500));

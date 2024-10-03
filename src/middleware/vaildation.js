@@ -65,15 +65,15 @@ export const generalFields = {
   workingTime: joi.string().valid(...Object.values(workingTimes)).required(),
   seniorityLevel: joi.string().valid(...Object.values(seniorityLevels)).required(),
   jobDescription: joi.string().max(2000).required(),
-  technicalSkills: joi.custom(parseArray),
-  softSkills: joi.custom(parseArray),
+  technicalSkills: joi.custom(parseArray).required(),
+  softSkills: joi.custom(parseArray).required(),
   addedBy: joi.string().hex().length(24).required(),
   
   jobId: joi.string().hex().length(24).required(),
   userId: joi.string().hex().length(24).required(),
   userTechSkills: joi.array().items(joi.string()).required(),
   userSoftSkills: joi.array().items(joi.string()).required(),
-  userResume: joi.custom(parseArray), // Assuming the resume is stored as a Cloudinary URL
+  userResume: joi.custom(parseArray).required(),
 };
 
 export const isValid = (schema) => {

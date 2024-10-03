@@ -57,10 +57,6 @@ const userSchema = new Schema(
     },
     otp: String,
     otpExpired: Date,
-    // verified: {
-    //   type: Boolean,
-    //   default: false,
-    // },
   },
   { timestamps: true }
 );
