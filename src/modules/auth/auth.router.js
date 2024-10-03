@@ -38,7 +38,7 @@ authRouter.post('/login', isValid(loginValidation), asyncHandler(login));
 
 //'/account/:userId'
 // 3- Update account
-authRouter.put('/account/:userId',
+authRouter.put('/update/:userId',
   isAuthenticated(),
   isAuthorized([roles.USER,roles.COMPANY_HR]),
   isValid(updateAccountVal),

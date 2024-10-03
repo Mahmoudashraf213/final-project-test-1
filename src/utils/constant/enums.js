@@ -5,27 +5,27 @@ export const roles = {
 };
 Object.freeze(roles);
 
-export const jobLocation = {
+export const jobLocations = {
   ONSITE: "onsite",
   REMOTELY: "remotely",
   HYBRID: "hybrid",
 };
-Object.freeze(jobLocation);
+Object.freeze(jobLocations);
 
-export const workingTime = {
+export const workingTimes = {
   PART_TIME: "part-time",
   FULL_TIME: "full-time",
 };
-Object.freeze(workingTime);
+Object.freeze(workingTimes);
 
-export const seniorityLevel = {
+export const seniorityLevels = {
   JUNIOR: "Junior",
   MID_LEVEL: "Mid-Level",
   SENIOR: "Senior",
   TEAM_LEAD: "Team-Lead",
   CTO: "CTO",
 };
-Object.freeze(seniorityLevel);
+Object.freeze(seniorityLevels);
 
 export const status = {
   ONLINE: "online",

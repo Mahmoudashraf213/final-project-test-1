@@ -1,5 +1,9 @@
 import { model, Schema } from "mongoose";
-import { jobLocation, workingTime, seniorityLevel } from "../../src/utils/constant/enums.js";
+import {
+  jobLocations,
+  workingTimes,
+  seniorityLevels,
+} from "../../src/utils/constant/enums.js";
 
 const jobSchema = new Schema(
   {
@@ -10,17 +14,17 @@ const jobSchema = new Schema(
     },
     jobLocation: {
       type: String,
-      enum: Object.values(jobLocation),
+      enum: Object.values(jobLocations),
       required: true,
     },
     workingTime: {
       type: String,
-      enum: Object.values(workingTime),
+      enum: Object.values(workingTimes),
       required: true,
     },
     seniorityLevel: {
       type: String,
-      enum: Object.values(seniorityLevel),
+      enum: Object.values(seniorityLevels),
       required: true,
     },
     jobDescription: {
@@ -41,6 +45,16 @@ const jobSchema = new Schema(
       ref: "User",
       required: true,
     },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: "Company",
+      required: true,
+    },
+    // company:{
+    //   type: Schema.Types.ObjectId,
+    //   ref: "Company",
+    // },
+
   },
   { timestamps: true }
 );

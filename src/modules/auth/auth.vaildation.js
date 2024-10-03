@@ -22,6 +22,7 @@ export const loginValidation = joi.object({
 
 // Validation for Update Account
 export const updateAccountVal = joi.object({
+  userId: generalFields.objectId.required(),
   firstName: generalFields.firstName.optional(),
   lastName: generalFields.lastName.optional(),
   // username: generalFields.username.optional(),

@@ -1,5 +1,5 @@
 import joi from "joi";
-import { roles } from "../utils/constant/enums.js";
+import {  jobLocations, roles, seniorityLevels, workingTimes } from "../utils/constant/enums.js";
 import { AppError } from "../utils/appError.js";
 
 // Utility function to parse arrays from string inputs
@@ -19,6 +19,17 @@ const parseArray = (value, helper) => {
   return data;
 };
 
+const jobSchema = joi.object({
+  jobTitle: joi.string().required().messages({
+    'string.base': 'Job title must be a string.',
+    'string.empty': 'Job title is required.',
+  }),
+  jobDescription: joi.string().required().messages({
+    'string.base': 'Job description must be a string.',
+    'string.empty': 'Job description is required.',
+  }),
+});
+
 export const generalFields = {
   firstName: joi.string().required(),
   lastName: joi.string().required(),
@@ -30,32 +41,39 @@ export const generalFields = {
   DOB: joi.date().iso().required(),
   role: joi.string().valid(...Object.values(roles)).default(roles.USER),
   status: joi.string().valid("online", "offline").default("offline"),
-  userId: joi.string().length(24).hex().optional(), 
+  objectId: joi.string().hex().length(24),
+  // userId: joi.string().length(24).hex().optional(), 
 
   
-  companyName: joi.string().required(),
+  companyName: joi.string(),
   description: joi.string().max(2000).required(),
   industry: joi.string().required(),
   address: joi.string().required(),
-  numberOfEmployees: joi.string().valid("1-10", "11-20", "21-50", "51-100", "101-500", "500+").required(),
+  numberOfEmployees: joi.string().pattern(/^(?:[1-9]\d{0,2})-(?:[1-9]\d{0,2})$/),
   companyEmail: joi.string().email().required(),
   companyHR: joi.string().hex().length(24).required(),
   companyId: joi.string().hex().length(24).required(),
+  jobs: joi.array().items(
+    joi.object({
+      jobTitle: joi.string().required(), 
+      jobDescription: joi.string().max(2000).required(), 
+    })
+  ).optional(),
   
   jobTitle: joi.string().required(),
-  jobLocation: joi.string().valid("onsite", "remotely", "hybrid").required(),
-  workingTime: joi.string().valid("part-time", "full-time").required(),
-  seniorityLevel: joi.string().valid("Junior", "Mid-Level", "Senior", "Team-Lead", "CTO").required(),
+  jobLocation: joi.string().valid(...Object.values(jobLocations)).required(),
+  workingTime: joi.string().valid(...Object.values(workingTimes)).required(),
+  seniorityLevel: joi.string().valid(...Object.values(seniorityLevels)).required(),
   jobDescription: joi.string().max(2000).required(),
-  technicalSkills: joi.array().items(joi.string()).required(),
-  softSkills: joi.array().items(joi.string()).required(),
+  technicalSkills: joi.custom(parseArray),
+  softSkills: joi.custom(parseArray),
   addedBy: joi.string().hex().length(24).required(),
   
   jobId: joi.string().hex().length(24).required(),
   userId: joi.string().hex().length(24).required(),
   userTechSkills: joi.array().items(joi.string()).required(),
   userSoftSkills: joi.array().items(joi.string()).required(),
-  userResume: joi.string().uri().required(), // Assuming the resume is stored as a Cloudinary URL
+  userResume: joi.custom(parseArray), // Assuming the resume is stored as a Cloudinary URL
 };
 
 export const isValid = (schema) => {
@@ -72,3 +90,4 @@ export const isValid = (schema) => {
     next();
   };
 };
+

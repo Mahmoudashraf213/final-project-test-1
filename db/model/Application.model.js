@@ -21,7 +21,23 @@ const applicationSchema = new Schema(
       required: true,
     },
     userResume: {
-      type: String, // URL of the resume stored in Cloudinary
+      secure_url: {
+        type: String,
+        required: true,
+      },
+      public_id: {
+        type: String,
+        required: true,
+      },
+    },
+    addedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      // required: true,
+    },
+    createdAt: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
   },

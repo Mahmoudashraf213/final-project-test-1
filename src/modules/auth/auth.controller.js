@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { User } from "../../../db/index.js";
+import { Application, Company, Job, User } from "../../../db/index.js";
 import { AppError } from "../../utils/appError.js";
 import { messages } from "../../utils/constant/messages.js";
 import { generateToken } from "../../utils/token.js";
@@ -96,16 +96,14 @@ export const updateAccount = async (req, res, next) => {
   try {
     // Get user ID from params and updates from the request body
     const { userId } = req.params;
-    console.log("User ID from params:", userId); // تحقق من تمرير الـ userId
-
-    let { email, mobileNumber, recoveryEmail, DOB, lastName, firstName } =
-      req.body;
+    const { email, mobileNumber, recoveryEmail, DOB, lastName, firstName } =req.body;
+    const authUserId = req.authUser._id;
+    // console.log("User ID from params:", userId);
 
     // Ensure only the account owner can update their account
-    if (userId !== req.user._id.toString()) {
-      return next(new AppError(messages.user.notAuthorized, 403));
+    if (authUserId.toString() !== userId.toString()) {
+      return next(new APPError(messages.user.unauthorized, 401));
     }
-
     // Fetch the user by ID
     const userExists = await User.findById(userId);
     if (!userExists) {
@@ -116,7 +114,7 @@ export const updateAccount = async (req, res, next) => {
     if (email || mobileNumber) {
       const conflictUser = await User.findOne({
         $or: [{ email }, { mobileNumber }],
-        _id: { $ne: userId }, // Exclude the current user from the check
+        _id: { $ne: authUserId }, // Exclude the current user from the check
       });
 
       if (conflictUser) {
@@ -173,6 +171,10 @@ export const deleteAccount = async (req, res, next) => {
     if (!deletedUser) {
       return next(new AppError(messages.user.failToDelete, 500));
     }
+    await Application.deleteMany({userId})
+    await Job.deleteMany({addedBy : userId})
+    await Company.deleteMany({companyHR : userId})
+
 
     return res.status(200).json({
       message: messages.user.deleteSuccessfully,
