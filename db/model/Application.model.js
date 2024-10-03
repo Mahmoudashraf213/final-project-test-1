@@ -4,20 +4,20 @@ const applicationSchema = new Schema(
   {
     jobId: {
       type: Schema.Types.ObjectId,
-      ref: "Job", 
+      ref: "Job",
       required: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User", 
+      ref: "User",
       required: true,
     },
     userTechSkills: {
-      type: [String], 
+      type: [String],
       required: true,
     },
     userSoftSkills: {
-      type: [String], 
+      type: [String],
       required: true,
     },
     userResume: {
@@ -36,8 +36,12 @@ const applicationSchema = new Schema(
       // required: true,
     },
     createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    companyId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Company",
       required: true,
     },
   },

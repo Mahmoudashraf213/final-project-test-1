@@ -1,4 +1,4 @@
-import XLSX from 'xlsx';
+import xlsx from 'xlsx';
 import moment from 'moment';
 import { User,Company, Job, Application } from "../../../db/index.js";
 import { ApiFeature } from "../../utils/apiFeatures.js";
@@ -267,61 +267,57 @@ export const getApplicationsForJob = async (req, res, next) => {
 
 
 // 7- Collect applications for a specific company on a specific day and create an Excel sheet
-export const exportApplicationsToExcel = async (req, res, next) => {
-  try {
-    const { companyId, date } = req.query;
-
-    // Validate the companyId and date
-    if (!companyId) {
-      return next(new AppError(messages.user.notVerified, 400));
-    }
-
-    // Find the company by its ID
-    const company = await Company.findById(companyId).populate('jobs');
-    if (!company) {
-      return next(new AppError(messages.company.notFound, 404));
-    }
-
-    // Convert the date to the start and end of the day for the query
-    const startOfDay = moment(date).startOf('day').toDate();
-    const endOfDay = moment(date).endOf('day').toDate();
-
-    // Find applications within the date range for the jobs associated with this company
-    const applications = await Application.find({
-      jobId: { $in: company.jobs.map(job => job._id) },
-      createdAt: { $gte: startOfDay, $lte: endOfDay }
-    }).populate('userId', 'firstName lastName email');
-
-    // If no applications found, return an error
-    if (!applications.length) {
-      return next(new AppError(messages.application.noApplicationsFound, 404));
-    }
-
-    // Prepare the data for the Excel sheet
-    const applicationData = applications.map(app => ({
-      JobID: app.jobId,
-      Applicant: `${app.userId.firstName} ${app.userId.lastName}`,
-      Email: app.userId.email,
-      TechSkills: app.userTechSkills.join(', '),
-      SoftSkills: app.userSoftSkills.join(', '),
-      Resume: app.userResume.secure_url,
-      AppliedAt: app.createdAt,
-    }));
-
-    // Create a new Excel workbook and add a worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(applicationData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
-
-    // Generate the Excel file and send it as a response
-    const filePath = `applications_${companyId}_${moment(date).format('YYYY-MM-DD')}.xlsx`;
-    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-
-    res.setHeader('Content-Disposition', `attachment; filename=${filePath}`);
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    return res.send(excelBuffer);
-
-  } catch (error) {
-    return next(new AppError(error.message, 500));
+export const getApplicationsReport = async (req, res, next) => {
+  // get data from req
+  const { companyId, date } = req.query;
+  const userId = req.authUser._id;
+  // Check if company exists
+  const company = await Company.findById(companyId);
+  if (!company) {
+      return next(new AppError(messages.company.notExist, 404));
   }
-};
+  // check if the user is the owner of the company
+  if (!company.companyHR.equals(userId)) {
+      return next(new AppError(messages.user.unauthorized, 403));
+  }
+  // Fetch jobs for the company
+  const jobs = await Job.find({ company: companyId });
+  if (!jobs.length) {
+      return next(new AppError(messages.job.notExist, 404));
+  }
+
+  // Get all jobIds for the company
+  const jobIds = jobs.map(job => job._id);
+
+  // Fetch applications for the company jobs on the specified day
+  const applications = await Application.find({
+      jobId: { $in: jobIds }, // Match any jobId from the company
+      createdAt: {
+          $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
+          $lte: new Date(new Date(date).setHours(23, 59, 59, 999))
+      }
+  }).populate('userId', 'firstName lastName email')
+      .populate('jobId', 'jobTitle')
+  // Check if there are applications
+  if (!applications.length) {
+      return next(new AppError('No applications found on the specified day', 404));
+  }
+  // Convert data into a format suitable for Excel
+  const data = applications.map(application => ({
+      'User Name': `${application.userId.firstName} ${application.userId.lastName}`,
+      'Email': application.userId.email,
+      'Applied Job Title': application.jobId.jobTitle,
+      'Application Date': application.createdAt.toDateString(),
+      'User Resume': application.userResume.secure_url
+  }));
+  // Create Excel file using xlsx library
+  const worksheet = xlsx.utils.json_to_sheet(data); // Convert JSON data to a worksheet
+  const workbook = xlsx.utils.book_new(); // Create a new workbook
+  xlsx.utils.book_append_sheet(workbook, worksheet, 'Applications'); // Append the worksheet to the workbook
+  // Set response headers
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=applications.xlsx');
+  // Send the file
+  const excelBuffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  res.send(excelBuffer);
+}

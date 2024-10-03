@@ -74,6 +74,8 @@ export const generalFields = {
   userTechSkills: joi.array().items(joi.string()).required(),
   userSoftSkills: joi.array().items(joi.string()).required(),
   userResume: joi.custom(parseArray).required(),
+  date: joi.date().iso(),
+
 };
 
 export const isValid = (schema) => {

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { isValid } from "../../middleware/vaildation.js";
-import { addCompanyVal, deleteCompanyVal, getAllSpecificAppVal, searchCompanyByName, updateCompanyVal } from "./company.validation.js";
+import { addCompanyVal, deleteCompanyVal, getAllSpecificAppVal, getApplicationsReportVal, searchCompanyByName, updateCompanyVal } from "./company.validation.js";
 import { asyncHandler } from "../../utils/appError.js";
 import { isAuthenticated } from "../../middleware/authentication.js";
 import { isAuthorized } from "../../middleware/autheraization.js";
 import { roles } from "../../utils/constant/enums.js";
-import { addCompany, deleteCompany, exportApplicationsToExcel, getApplicationsForJob, getCompanyData, searchCompany, updateCompany } from "./company.controller.js";
+import { addCompany, deleteCompany,getApplicationsForJob, getApplicationsReport, getCompanyData, searchCompany, updateCompany } from "./company.controller.js";
 const companyRouter = Router()
 
 /**
@@ -131,9 +131,10 @@ companyRouter.get('/job-applications/:jobId',
  * @returns {Object} 403 - Forbidden error if the user does not have permission to export the applications.
  */
 // 7- # Bonus Points
-companyRouter.get('/:companyId/applications/export',
+companyRouter.get('/applications-report',
   isAuthenticated(),
   isAuthorized([roles.COMPANY_HR]),
-  asyncHandler(exportApplicationsToExcel)
+  isValid(getApplicationsReportVal),
+  asyncHandler(getApplicationsReport)
 )
 export default companyRouter
