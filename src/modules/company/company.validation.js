@@ -1,7 +1,7 @@
 import joi from 'joi';
 import { generalFields } from '../../middleware/vaildation.js';
 
-// add company vaildation
+// 1-  add company vaildation
 export const addCompanyVal = joi.object({
   companyName: generalFields.companyName,
   description: generalFields.description,
@@ -14,7 +14,7 @@ export const addCompanyVal = joi.object({
   jobs: generalFields.jobs
 });
 
-// update company data
+// 2-  update company data
 export const updateCompanyVal = joi.object({
   companyName: generalFields.companyName,
   description: generalFields.description,
@@ -28,17 +28,17 @@ export const updateCompanyVal = joi.object({
   // jobDescription : generalFields.jobDescription
 }).fork(['companyName', 'description', 'industry', 'address', 'numberOfEmployees', 'companyEmail', 'companyHR'], (schema) => schema.optional());;
 
-// Delete company data 
+// 3- Delete company data 
 export const deleteCompanyVal = joi.object({
-  companyId: generalFields.companyId, // Assuming you have defined a companyId in your generalFields
+  companyId: generalFields.companyId,
 }).required();
 
-// search for company by name
+// 4- search for company by name
 export const searchCompanyByName = joi.object({
   companyName: generalFields.companyName.required(),
 })
 
-// Get all applications for specific Job
+// 5-  Get all applications for specific Job
 export const getAllSpecificAppVal = joi.object({
   jobId: generalFields.jobId,
 }) 
