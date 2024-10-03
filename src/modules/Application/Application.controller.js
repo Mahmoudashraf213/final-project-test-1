@@ -2,19 +2,6 @@ import { User, Company, Job, Application } from "../../../db/index.js";
 import { AppError } from "../../utils/appError.js";
 import { messages } from "../../utils/constant/messages.js";
 import cloudinary from "../../utils/cloud.js";
-/**
- * @function addApplication
- * @description Handles the creation of a job application, including uploading a resume to Cloudinary and saving the application to the database. If any step fails, it rolls back the resume upload by deleting the file from Cloudinary.
- * 
- * @async
- * @param {Object} req - The request object containing the job ID, tech skills, soft skills, and the uploaded resume file. Also includes the authenticated user's ID.
- * @param {Object} res - The response object used to send back the success message and the created application data.
- * @param {Function} next - The next middleware function to handle errors.
- * 
- * @throws Will throw an error if the job doesn't exist, if the resume file isn't uploaded, or if there's an issue saving the application.
- * 
- * @returns {Object} On success, returns a JSON response containing a success message and the created application data.
- */
 // 1- add Application 
 export const addApplication = async (req, res, next) => {
   // To store the uploaded resume details for rollback

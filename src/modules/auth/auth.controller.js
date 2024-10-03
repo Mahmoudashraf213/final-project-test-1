@@ -7,6 +7,7 @@ import { generateToken } from "../../utils/token.js";
 import { sendEmail } from "../../utils/email.js";
 import { status } from "../../utils/constant/enums.js";
 
+
 // 1- Sign Up
 export const signup = async (req, res, next) => {
   let { firstName, lastName, username, email,recoveryEmail, password, mobileNumber,role, DOB } =

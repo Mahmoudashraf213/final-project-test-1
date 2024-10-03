@@ -1,6 +1,7 @@
 import joi from "joi";
 import { generalFields } from "../../middleware/vaildation.js";
-// Validation for Signup
+
+// 1- Validation for Signup
 export const signupValidation = joi.object({
   firstName: generalFields.firstName,
   lastName: generalFields.lastName,
@@ -13,14 +14,14 @@ export const signupValidation = joi.object({
   role: generalFields.role,
 });
 
-// Validation for Login
+// 2- Validation for Login
 export const loginValidation = joi.object({
   email: generalFields.email.optional(),
   mobileNumber: generalFields.mobileNumber.optional(),
   password: generalFields.password.required(),
-}).or("email", "mobileNumber"); // Requires either email or mobileNumber
+}).or("email", "mobileNumber"); 
 
-// Validation for Update Account
+// 3- Validation for Update Account
 export const updateAccountVal = joi.object({
   userId: generalFields.objectId.required(),
   firstName: generalFields.firstName.optional(),
@@ -33,25 +34,25 @@ export const updateAccountVal = joi.object({
   // role: generalFields.role.optional(),
 });
 
-// Validation for Update Password
+// 3-  Validation for Update Password
 export const updatePasswordValidation = joi.object({
   currentPassword: generalFields.password.required(),
   newPassword: generalFields.password.required(),
 });
 
-// Validation for Forget Password (Step 1: Sending OTP)
+// 4-  Validation for Forget Password (Step 1: Sending OTP)
 export const sendResetPasswordOTPVal = joi.object({
   email: generalFields.email.required(),
 });
 
-// Validation for Reset Password with OTP (Step 2)
+// 4-  Validation for Reset Password with OTP (Step 2)
 export const resetPasswordWithOTPVal = joi.object({
   email: generalFields.email.required(),
   otp: joi.string().length(6).required(), // 6-digit OTP
   newPassword: generalFields.password.required(),
 });
 
-// Validation for Get All Accounts by Recovery Email
+// 5-  Validation for Get All Accounts by Recovery Email
 export const getAccountsByRecoveryEmailVal = joi.object({
   recoveryEmail: generalFields.recoveryEmail.required(),
 });
